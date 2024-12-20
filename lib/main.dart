@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
         ),
-        home: Switcher(),
+        home: Navigation(),
       ),
     );
   }
@@ -31,12 +31,7 @@ class AppState extends ChangeNotifier {
   DateTime? inputDate;
   bool status = false;
   var taken = {};
-  
-  
-
-  void endOfDay(){
-    if
-  }
+  bool seenWelcome = false;
   
 
   void addDate() {
@@ -51,13 +46,27 @@ class AppState extends ChangeNotifier {
   }
 }
 
-class Switcher extends StatefulWidget {
+class Navigation extends StatefulWidget {
   @override
-  State<Switcher> createState() => _SwitcherState();
+  State<Navigation> createState() => _NavigationState();
 }
 
-class _SwitcherState extends State<Switcher> {
+class _NavigationState extends State<Navigation> {
   int selectedIndex = 0;
+
+  @override
+void initState(){
+  super.initState();
+  bool seen = context.read<AppState>().seenWelcome;
+    if (seen) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context){
+          return WelcomeDialog();
+        }
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context){
@@ -215,6 +224,33 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text('Settings'),
+    );
+  }
+}
+
+
+class WelcomeDialog extends StatefulWidget{
+  @override
+  State<WelcomeDialog> createState () => _WelcomeDialogState();
+}
+
+class _WelcomeDialogState extends State<WelcomeDialog> {
+
+  @override
+  Widget build(BuildContext context){
+    return Dialog(
+      child:Column(
+              children: [
+                Text("Welcome to PillPal!"),
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<AppState>().seenWelcome = true;
+                    Navigator.pop(context);
+                  },
+                  child: Text("I have know how the app works"),
+                )
+              ]
+       )
     );
   }
 }
