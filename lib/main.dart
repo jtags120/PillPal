@@ -44,6 +44,7 @@ class AppState extends ChangeNotifier {
     }
     notifyListeners();
   }
+  
 }
 
 class Navigation extends StatefulWidget {
@@ -55,18 +56,7 @@ class _NavigationState extends State<Navigation> {
   int selectedIndex = 0;
 
   @override
-void initState(){
-  super.initState();
-  bool seen = context.read<AppState>().seenWelcome;
-    if (seen) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context){
-          return WelcomeDialog();
-        }
-      );
-    }
-  }
+  
 
   @override
   Widget build(BuildContext context){
@@ -235,7 +225,15 @@ class WelcomeDialog extends StatefulWidget{
 }
 
 class _WelcomeDialogState extends State<WelcomeDialog> {
+  late bool seen;
 
+  @override
+  void initState(){
+    super.initState();
+    seen = context.read<AppState>().seenWelcome;
+  }
+    
+  
   @override
   Widget build(BuildContext context){
     return Dialog(
@@ -244,10 +242,10 @@ class _WelcomeDialogState extends State<WelcomeDialog> {
                 Text("Welcome to PillPal!"),
                 ElevatedButton(
                   onPressed: () {
-                    context.read<AppState>().seenWelcome = true;
                     Navigator.pop(context);
+                    seen = true;
                   },
-                  child: Text("I have know how the app works"),
+                  child: Text("Click this button to dismiss this message!"),
                 )
               ]
        )
