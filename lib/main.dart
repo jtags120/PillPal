@@ -55,11 +55,25 @@ class Navigation extends StatefulWidget {
 class _NavigationState extends State<Navigation> {
   int selectedIndex = 0;
 
-  @override
   
 
   @override
   Widget build(BuildContext context){
+    if(!context.watch<AppState>().seenWelcome) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+      showGeneralDialog(
+        context: context,
+        barrierDismissible: false,
+        pageBuilder: (context, anim1, anim2) { 
+          return WelcomeDialog();
+          },
+        barrierColor: Colors.black.withAlpha(128),
+        );
+      }
+    );
+  }
+
+
     Widget page;
     switch (selectedIndex) {
       case 0:
@@ -110,6 +124,7 @@ class _NavigationState extends State<Navigation> {
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+
     return Center(
       child: ElevatedButton(
         child: Text('Check Medication'),
@@ -225,30 +240,25 @@ class WelcomeDialog extends StatefulWidget{
 }
 
 class _WelcomeDialogState extends State<WelcomeDialog> {
-  late bool seen;
-
-  @override
-  void initState(){
-    super.initState();
-    seen = context.read<AppState>().seenWelcome;
-  }
-    
   
   @override
   Widget build(BuildContext context){
-    return Dialog(
-      child:Column(
-              children: [
-                Text("Welcome to PillPal!"),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    seen = true;
-                  },
-                  child: Text("Click this button to dismiss this message!"),
-                )
-              ]
-       )
+    return SafeArea(
+      child: Dialog(
+        child:Column(
+                children: [
+                  Text("Welcome to PillPal!"),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.read<AppState>().seenWelcome = true;
+                      Navigator.pop(context);
+                    },
+                    child: Text("Click this button to dismiss this message!"),
+                  ),
+                    Text("This dialog will close ")
+                ]
+         )
+      ),
     );
   }
 }
