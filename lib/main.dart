@@ -46,7 +46,7 @@ class AppState extends ChangeNotifier {
   void addDate() {
     final now = DateTime.now();
     final normalizedDate = DateTime(now.year, now.month, now.day);
-    
+
     if (!takenMedications.containsKey(normalizedDate)) {
       takenMedications[normalizedDate] = [];
     }
@@ -66,7 +66,8 @@ class AppState extends ChangeNotifier {
     if (!takenMedications.containsKey(normalizedDate)) {
       takenMedications[normalizedDate] = [];
     }
-    takenMedications[normalizedDate]!.add(MedicationEntry(name: name, taken: taken));
+    takenMedications[normalizedDate]!
+        .add(MedicationEntry(name: name, taken: taken));
     notifyListeners();
   }
 }
@@ -78,7 +79,6 @@ class MedicationEntry {
 
   MedicationEntry({required this.name, required this.taken});
 }
-
 
 class Navigation extends StatefulWidget {
   @override
@@ -261,6 +261,7 @@ class SettingsPage extends StatelessWidget {
       child: ElevatedButton(
         onPressed: () {
           final now = DateTime.now();
+          //testing med dropdown
           context.read<AppState>().addMedication(now, "Vitamin D", true);
           context.read<AppState>().addMedication(now, "Aspirin", false);
         },
