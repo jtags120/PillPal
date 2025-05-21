@@ -261,9 +261,6 @@ class SettingsPage extends StatelessWidget {
       child: ElevatedButton(
         onPressed: () {
           final now = DateTime.now();
-          //testing med dropdown
-          context.read<AppState>().addMedication(now, "Vitamin D", true);
-          context.read<AppState>().addMedication(now, "Aspirin", false);
         },
         child: Text("Simulate Adding Meds"),
       ),
