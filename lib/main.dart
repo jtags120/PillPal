@@ -4,6 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
+part 'nav.dart';
+part 'home.dart';
+part 'medList.dart';
+part 'medCheck.dart';
+part 'schedule.dart';
+part 'checkMedication.dart';
+
 void main() {
   runApp(MyApp());
 }
@@ -33,6 +40,8 @@ class AppState extends ChangeNotifier {
   bool status = false;
   bool seenWelcome = false;
 
+  
+
   // New structure to track meds per day
   Map<DateTime, List<MedicationEntry>> takenMedications = {};
 
@@ -51,207 +60,32 @@ class AppState extends ChangeNotifier {
       takenMedications[normalizedDate] = [];
     }
 
-    // Record a generic medication status for the day
-    takenMedications[normalizedDate]!.add(
-      MedicationEntry(name: "Medication taken?", taken: status),
-    );
-
+    
     date = now;
     notifyListeners();
   }
 
   /// Add a named medication for any day
-  void addMedication(DateTime date, String name, bool taken) {
-    final normalizedDate = DateTime(date.year, date.month, date.day);
-    if (!takenMedications.containsKey(normalizedDate)) {
-      takenMedications[normalizedDate] = [];
-    }
-    takenMedications[normalizedDate]!
-        .add(MedicationEntry(name: name, taken: taken));
-    notifyListeners();
+  void addTakenMedication(DateTime date, String name, bool taken, String time) {
+  final normalizedDate = DateTime(date.year, date.month, date.day);
+  if (!takenMedications.containsKey(normalizedDate)) {
+    takenMedications[normalizedDate] = [];
   }
+  takenMedications[normalizedDate]!.add(
+    MedicationEntry(name: name, taken: taken, time: time),
+  );
+  notifyListeners();
+}
+
 }
 
 /// Medication model
 class MedicationEntry {
   final String name;
   final bool taken;
+  final String time;
 
-  MedicationEntry({required this.name, required this.taken});
-}
-
-class Navigation extends StatefulWidget {
-  @override
-  State<Navigation> createState() => _NavigationState();
-}
-
-class _NavigationState extends State<Navigation> {
-  int selectedIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final seenWelcome = context.read<AppState>().seenWelcome;
-      if (!seenWelcome) {
-        showDialog(
-          context: context,
-          builder: (_) => WelcomeDialog(),
-        );
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    Widget page;
-    switch (selectedIndex) {
-      case 0:
-        page = HomePage();
-      case 1:
-        page = MedList();
-      case 2:
-        page = SettingsPage();
-      default:
-        throw UnimplementedError('no widget for $selectedIndex');
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Scaffold(
-          body: page,
-          bottomNavigationBar: BottomNavigationBar(
-              backgroundColor: Colors.black,
-              type: BottomNavigationBarType.fixed,
-              selectedItemColor: Colors.amber,
-              unselectedItemColor: Colors.white,
-              currentIndex: selectedIndex,
-              onTap: (value) {
-                setState(() {
-                  selectedIndex = value;
-                });
-              },
-              items: [
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.home), label: ('Home')),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.list), label: 'Med Regimen'),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.settings), label: 'Settings')
-              ]),
-        );
-      },
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: ElevatedButton(
-        child: Text('Check Medication'),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => MedCheck()),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class MedList extends StatefulWidget {
-  @override
-  State<MedList> createState() => _MedListState();
-}
-
-class _MedListState extends State<MedList> {
-  @override
-  Widget build(BuildContext context) {
-    final takenMedications = context.watch<AppState>().takenMedications;
-    final sortedDates = takenMedications.keys.toList()
-      ..sort((a, b) => b.compareTo(a)); // newest first
-
-    return ListView(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Center(
-            child: Text("Medication Regimen", style: TextStyle(fontSize: 30)),
-          ),
-        ),
-        ...sortedDates.map((date) {
-          final formattedDate = DateFormat('yMMMd').format(date);
-          final meds = takenMedications[date]!;
-
-          return ExpansionTile(
-            title: Text(formattedDate),
-            children: meds.map((med) {
-              return ListTile(
-                leading: Icon(med.taken ? Icons.check : Icons.close,
-                    color: med.taken ? Colors.green : Colors.red),
-                title: Text(med.name),
-                subtitle: Text(med.taken ? "Taken" : "Not Taken"),
-              );
-            }).toList(),
-          );
-        }).toList(),
-      ],
-    );
-  }
-}
-
-class MedCheck extends StatefulWidget {
-  @override
-  State<MedCheck> createState() => _MedCheckState();
-}
-
-class _MedCheckState extends State<MedCheck> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(70.0),
-              child: Text(
-                "Have you taken your meds today?",
-                style: TextStyle(fontSize: 25),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                minimumSize: Size(200, 50),
-              ),
-              onPressed: () {
-                context.read<AppState>().status = true;
-                context.read<AppState>().addDate();
-                Navigator.pop(context);
-              },
-              child: Text('Yes', style: TextStyle(fontSize: 30)),
-            ),
-            SizedBox(height: 50),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                minimumSize: Size(200, 50),
-              ),
-              onPressed: () {
-                context.read<AppState>().status = false;
-                context.read<AppState>().addDate();
-                Navigator.pop(context);
-              },
-              child: Text('No', style: TextStyle(fontSize: 30)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  MedicationEntry({required this.name, required this.time, required this.taken});
 }
 
 class SettingsPage extends StatelessWidget {
@@ -260,9 +94,12 @@ class SettingsPage extends StatelessWidget {
     return Center(
       child: ElevatedButton(
         onPressed: () {
-          final now = DateTime.now();
+          showDialog(
+            context: context,
+            builder: (_) => ScheduleDialog(),
+          );
         },
-        child: Text("Simulate Adding Meds"),
+        child: Text("View or Change schedule"),
       ),
     );
   }
@@ -276,24 +113,126 @@ class WelcomeDialog extends StatefulWidget {
 class _WelcomeDialogState extends State<WelcomeDialog> {
   late bool seen;
 
+  final List<String> times = [];
+  final Map<String, List<String>> medsByTime = {};
+  final Map<String, TextEditingController> medControllers = {};
+
+  final TextEditingController timeController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     seen = context.read<AppState>().seenWelcome;
   }
 
+  void addTime() {
+    final time = timeController.text.trim();
+    if (time.isNotEmpty && !times.contains(time)) {
+      setState(() {
+        times.add(time);
+        medsByTime[time] = [];
+        medControllers[time] =
+            TextEditingController(); // separate controller for each time
+      });
+      timeController.clear();
+    }
+  }
+
+  void addMedication(String time) {
+    final controller = medControllers[time];
+    final med = controller?.text.trim() ?? "";
+    if (med.isNotEmpty) {
+      setState(() {
+        medsByTime[time]?.add(med);
+        controller?.clear();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
-        child: Column(children: [
-      Text("Welcome to PillPal!"),
-      ElevatedButton(
-        onPressed: () {
-          context.read<AppState>().seenWelcome = true;
-          Navigator.pop(context);
-        },
-        child: Text("Click this button to dismiss this message!"),
-      )
-    ]));
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("👋 Welcome to PillPal!", style: TextStyle(fontSize: 20)),
+            SizedBox(height: 12),
+            Text("Let’s get started by setting up your medication schedule."),
+            SizedBox(height: 16),
+
+            // Time Input
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: timeController,
+                    decoration: InputDecoration(
+                      labelText: "Add a time (e.g., Morning, 8:00 AM)",
+                    ),
+                    onSubmitted: (_) => addTime(),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.add),
+                  onPressed: addTime,
+                )
+              ],
+            ),
+            SizedBox(height: 16),
+
+            // Medication Inputs for Each Time
+            for (String time in times)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Medications for $time",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: medControllers[time],
+                          decoration: InputDecoration(
+                              labelText: "Enter medication name"
+                              ),
+                            onSubmitted: (_) => addMedication(time),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.add),
+                        onPressed: () => addMedication(time),
+                      ),
+                    ],
+                  ),
+                  Wrap(
+                    spacing: 6,
+                    children: medsByTime[time]!
+                        .map((med) => Chip(label: Text(med)))
+                        .toList(),
+                  ),
+                  SizedBox(height: 10),
+                ],
+              ),
+
+            SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                context.read<AppState>().seenWelcome = true;
+                for(String time in times){
+                  for(String med in medsByTime[time]!){
+                    context.read<AppState>().addTakenMedication(DateTime.now(), med, false, time);
+
+                  }
+                }
+                Navigator.pop(context);
+              },
+              child: Text("Done"),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
